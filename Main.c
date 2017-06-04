@@ -26,6 +26,7 @@ bool queueHasValue(node **firstNode, int value);
 void pushBack(node ** lastNode, int newValue);
 void printQueue(node **firstNode);
 void execute(int fileNumber, int totalPages);
+void shiftAges(node **firstNode);
 
 void main() {
 
@@ -93,13 +94,16 @@ void execute(int fileNumber, int totalPages) {
 
 
 
-	currentNode = (node *)malloc(sizeof(node));;
-	currentNode->value = page->value;
-	currentNode->next = NULL;
-	currentNode->age = 8;
-	firstNode = (node*)currentNode;
+	//currentNode = (node *)malloc(sizeof(node));;
+	//currentNode->value = page->value;
+	//currentNode->next = NULL;
+	//currentNode->age = 0;
+	//firstNode = (node*)currentNode;
 
-
+	firstNode = (node *)malloc(sizeof(node));;
+	firstNode->value = page->value;
+	firstNode->next = NULL;
+	firstNode->age = 0;
 
 	int queueSize = 1;
 	while (page != NULL)
@@ -108,18 +112,17 @@ void execute(int fileNumber, int totalPages) {
 		node *requestedNode = malloc(sizeof(node));
 		requestedNode->age = -1;
 		while (currentNode != NULL) {
-			currentNode->age = currentNode->age >> 1;
-
 			if (currentNode->value == page->value)
 				requestedNode = currentNode;
 			currentNode = currentNode->next;
-		}
+		}		
 
 		if (requestedNode->age != -1)
 		{
+			shiftAges(firstNode);
 			requestedNode->age = requestedNode->age | 8;
 		}
-		else if (queueSize == 4) {
+		else if (queueSize == 4) {			
 			node *oldestNode = malloc(sizeof(node));
 			currentNode = firstNode;
 			oldestNode->age = 100;
@@ -128,13 +131,15 @@ void execute(int fileNumber, int totalPages) {
 					oldestNode = (node*) currentNode;
 				currentNode = (node*) currentNode->next;
 			}
-			printf("Nó mais velho: %d", oldestNode->value);
+			shiftAges(firstNode);
+			printf("Nó mais velho: %d\n", oldestNode->value);
 			oldestNode->value = page->value;
 			oldestNode->age = 8;
 
 			pageFaults++;
 		}
 		else {
+			shiftAges(firstNode);
 			currentNode = firstNode;
 			while (currentNode->next != NULL) {
 				currentNode = currentNode->next;
@@ -146,6 +151,8 @@ void execute(int fileNumber, int totalPages) {
 			currentNode->next = aux;
 			queueSize++;
 		}
+		
+		
 
 		//if (!queueHasValue(&firstNode, page->value)) {
 		//	if (queueSize == totalPages) {
@@ -168,6 +175,14 @@ void execute(int fileNumber, int totalPages) {
 
 	printf("Arquivo %d, %5d paginas, %7d requisicoes: FIFO: %5d Page Faults", fileNumber, totalPages, getQueueSize(&startPage), pageFaults);
 	printf(". Time: %f\n", timeTaken);
+}
+
+void shiftAges(node **firstNode) {
+	node *currentNode = (node *)firstNode;
+	while (currentNode != NULL) {
+		currentNode->age = currentNode->age >> 1;
+		currentNode = currentNode->next;
+	}
 }
 
 
@@ -233,7 +248,7 @@ void printQueue(node **firstNode) {
 		printf("\n\n --- Lista vazia !!!");
 	}
 	else {
-		printf("\n\n --- ");
+		printf("\n --- ");
 		node * firstNodeB = (*firstNode);
 		temp = (node *)malloc(sizeof(node));
 		temp = firstNodeB;
